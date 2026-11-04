@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suivi des pistes de stage – CIEL</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14212e;--muted:#5b6b7b;--line:#d9e1e9;--accent:#0e7c86;--accent-ink:#fff;
+--wait-bg:#e2f0fb;--wait-fg:#1b5d8f;--wait-bar:#3b92d1;--rel-bg:#fff0cc;--rel-fg:#8a5a00;--rel-bar:#e5a100;
+--ok-bg:#dff3e4;--ok-fg:#1d6b34;--ok-bar:#2fa05a;--ref-bg:#fde3e3;--ref-fg:#9b2c2c;--ref-bar:#d95757;--shadow:0 1px 2px rgba(20,33,46,.06),0 6px 18px rgba(20,33,46,.06)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1720;--card:#18232f;--ink:#e8eef4;--muted:#9aabbb;--line:#2a3846;--accent:#4fc3cc;--accent-ink:#06262a;
+--wait-bg:#16324a;--wait-fg:#8cc7f2;--rel-bg:#40330f;--rel-fg:#f2cd73;--ok-bg:#163a26;--ok-fg:#8fdba9;--ref-bg:#431f23;--ref-fg:#f2a0a0;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope','Segoe UI',system-ui,sans-serif;line-height:1.5}
+.hidden{display:none!important}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 20px 48px}
+h1{margin:0;font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.sub{margin:6px 0 0;color:var(--muted);font-size:15px}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:end;justify-content:space-between;margin-bottom:20px}
+.userbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.who{font-weight:700;font-size:14px;padding:0 6px}
+.tag{font-size:11.5px;font-weight:800;background:var(--accent);color:var(--accent-ink);border-radius:3px;padding:2px 7px;margin-left:6px;text-transform:uppercase}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:8px 14px;min-width:92px}
+.stat b{display:block;font-size:22px;font-weight:800;line-height:1.1}.stat span{font-size:12.5px;color:var(--muted)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.search,.f input,.f select,.auth input{font:inherit;font-size:14.5px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:3px;padding:11px 14px;width:100%}
+.search{flex:1;min-width:240px;width:auto}
+.f input,.f select,.auth input{background:var(--bg)}
+:focus-visible,input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:3px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:3px;font:inherit;font-size:13.5px;font-weight:700;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:transparent;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.call{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.btn.call:hover{color:var(--accent-ink);filter:brightness(1.1)}
+.btn.del{color:var(--ref-fg)}.btn.add{margin-left:auto;padding:11px 18px;font-size:14px}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}
+th{text-align:left;font-weight:700;font-size:13px;color:var(--muted);padding:14px 16px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-child td{border-bottom:0}
+tr[data-s] td:first-child{box-shadow:inset 5px 0 0 var(--bar);padding-left:20px}
+tr[data-s="attente"]{--bar:var(--wait-bar);background:color-mix(in srgb,var(--wait-bg) 45%,var(--card))}
+tr[data-s="relance"]{--bar:var(--rel-bar);background:color-mix(in srgb,var(--rel-bg) 55%,var(--card))}
+tr[data-s="accepte"]{--bar:var(--ok-bar);background:color-mix(in srgb,var(--ok-bg) 55%,var(--card))}
+tr[data-s="refus"]{--bar:var(--ref-bar);background:color-mix(in srgb,var(--ref-bg) 55%,var(--card))}
+tr[data-s="refus"] .name{text-decoration:line-through;text-decoration-thickness:1px;opacity:.75}
+.name{margin:0;font-size:15.5px;font-weight:800;line-height:1.3}.addr{color:var(--muted);font-size:13.5px}.tel{font-weight:700}
+select.status{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--line);border-radius:3px;padding:6px 10px;cursor:pointer}
+[data-s="attente"] select.status{background:var(--wait-bg);color:var(--wait-fg)}
+[data-s="relance"] select.status{background:var(--rel-bg);color:var(--rel-fg)}
+[data-s="accepte"] select.status{background:var(--ok-bg);color:var(--ok-fg)}
+[data-s="refus"] select.status{background:var(--ref-bg);color:var(--ref-fg)}
+td.notes{min-width:220px}
+textarea{width:100%;font:inherit;font-size:13.5px;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:3px;padding:9px 11px;resize:vertical;min-height:56px}
+textarea:hover{border-color:var(--line)}textarea:focus{background:var(--card);border-color:var(--accent)}
+.actions{display:flex;gap:8px}td .btn{padding:7px 11px}
+.empty{text-align:center;color:var(--muted);padding:48px 0}
+dialog{border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);padding:24px;width:min(520px,92vw)}
+dialog::backdrop{background:rgba(10,20,30,.55)}dialog h2{margin:0 0 4px;font-size:20px;font-weight:800}
+.f label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 4px}
+dialog .actions{margin-top:20px;justify-content:flex-end}
+.urow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.urow small{color:var(--muted)}.pend{color:var(--rel-fg);font-weight:700}
+.auth{max-width:400px;margin:12vh auto 0;background:var(--card);border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow);padding:28px}
+.auth h1{font-size:26px;margin-bottom:4px}.tabs{display:flex;gap:8px;margin:20px 0 6px}.tabs .chip{flex:1}
+.auth label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 4px}
+.auth .btn{width:100%;justify-content:center;margin-top:18px;padding:12px}
+.msg{margin:14px 0 0;font-size:14px;font-weight:600;min-height:20px}.msg.err{color:var(--ref-fg)}.msg.ok{color:var(--ok-fg)}
+</style>
+</head>
+<body>
+
+<div class="auth hidden" id="auth">
+  <h1>Pistes de stage – CIEL</h1>
+  <p class="sub">Connecte-toi pour voir le tableau.</p>
+  <div class="tabs"><button class="chip" id="tabLogin" aria-pressed="true" type="button">Connexion</button><button class="chip" id="tabReg" aria-pressed="false" type="button">Créer un compte</button></div>
+  <label for="u">Nom</label><input id="u" autocomplete="username">
+  <label for="p">Mot de passe</label><input id="p" type="password" autocomplete="current-password">
+  <button class="btn call" id="go" type="button">Se connecter</button>
+  <p class="msg" id="amsg" role="status"></p>
+</div>
+
+<div class="wrap hidden" id="app">
+  <header>
+    <div><h1>Pistes de stage – CIEL</h1><p class="sub">Entreprises autour de Toulouse, Blagnac et Fenouillet</p></div>
+    <div class="userbar"><span class="who" id="who"></span><button class="btn hidden" id="usersBtn" type="button">Comptes</button><button class="btn" id="outBtn" type="button">Déconnexion</button></div>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Rechercher une entreprise, une ville, une activité…" aria-label="Rechercher">
+    <div class="chips" id="chips"></div>
+    <button class="btn call add" id="addBtn" type="button">+ Ajouter une entreprise</button>
+  </div>
+  <div class="tablewrap"><table><thead><tr><th>Entreprise</th><th>Adresse / zone</th><th>Activité liée à CIEL</th><th>Téléphone</th><th>Pourquoi contacter / notes</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="grid"></tbody></table></div>
+  <p class="empty hidden" id="empty">Aucune entreprise ne correspond à cette recherche.</p>
+</div>
+
+<dialog id="dlg">
+  <h2>Ajouter une entreprise</h2>
+  <div class="f">
+    <label for="f-n">Nom de l’entreprise *</label><input id="f-n">
+    <label for="f-a">Adresse / zone</label><input id="f-a">
+    <label for="f-act">Activité liée à CIEL</label><input id="f-act">
+    <label for="f-t">Téléphone</label><input id="f-t" type="tel">
+    <label for="f-w">Site web</label><input id="f-w" placeholder="exemple.fr">
+    <label for="f-note">Pourquoi contacter / notes</label><input id="f-note">
+    <label for="f-s">Statut</label><select id="f-s"></select>
+  </div>
+  <p class="msg err" id="dmsg"></p>
+  <div class="actions"><button class="btn" id="cancelBtn" type="button">Annuler</button><button class="btn call" id="saveBtn" type="button">Enregistrer</button></div>
+</dialog>
+
+<dialog id="udlg">
+  <h2>Comptes</h2>
+  <p class="sub">Valide les nouveaux comptes pour leur donner accès.</p>
+  <div id="ulist"></div>
+  <div class="actions"><button class="btn" id="uclose" type="button">Fermer</button></div>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const LABELS={attente:"À contacter",relance:"À relancer",accepte:"Accepté",refus:"Refusé"};
+const FILTERS=[["all","Tous"],["attente","À contacter"],["relance","Attente de réponse"],["accepte","Accepté"],["refus","Refusé"]];
+const STATS=[["attente","À contacter"],["relance","À relancer"],["accepte","Acceptés"],["refus","Refusés"]];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let me=null,DATA=[],filter="all",mode="login";
+const opts=sel=>Object.entries(LABELS).map(([k,v])=>`<option value="${k}"${k===sel?" selected":""}>${v}</option>`).join("");
+
+async function api(path,method="GET",body){
+  const r=await fetch("/api/"+path,{method,headers:{"content-type":"application/json"},body:body?JSON.stringify(body):undefined});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw Object.assign(new Error(d.error||"Erreur"),{status:r.status});
+  return d;
+}
+
+/* ---------- Connexion ---------- */
+function setMode(m){mode=m;$("tabLogin").setAttribute("aria-pressed",m==="login");$("tabReg").setAttribute("aria-pressed",m==="register");
+  $("go").textContent=m==="login"?"Se connecter":"Créer mon compte";$("p").autocomplete=m==="login"?"current-password":"new-password";$("amsg").textContent=""}
+$("tabLogin").onclick=()=>setMode("login");$("tabReg").onclick=()=>setMode("register");
+function amsg(t,c){const e=$("amsg");e.textContent=t;e.className="msg "+c}
+async function submitAuth(){
+  const body={username:$("u").value,password:$("p").value};
+  try{
+    if(mode==="register"){
+      const r=await api("register","POST",body);
+      if(r.pending){setMode("login");amsg("Compte créé. L’admin doit le valider avant que tu puisses te connecter.","ok");return}
+    }
+    await api("login","POST",body);
+    $("p").value="";await boot();
+  }catch(e){amsg(e.message,"err")}
+}
+$("go").onclick=submitAuth;
+["u","p"].forEach(i=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth()}));
+$("outBtn").onclick=async()=>{try{await api("logout","POST")}catch{}me=null;showAuth()};
+function showAuth(){$("app").classList.add("hidden");$("auth").classList.remove("hidden")}
+
+/* ---------- Tableau ---------- */
+function renderMeta(){
+  $("stats").innerHTML=STATS.map(([k,l])=>`<div class="stat"><b>${DATA.filter(d=>d.status===k).length}</b><span>${l}</span></div>`).join("");
+  $("chips").innerHTML=FILTERS.map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${k===filter}">${l}</button>`).join("");
+}
+function render(){
+  const q=$("q").value.toLowerCase().trim();
+  const list=DATA.filter(d=>(filter==="all"||d.status===filter)&&(!q||[d.name,d.address,d.activity,d.note].join(" ").toLowerCase().includes(q)));
+  $("grid").innerHTML=list.map(d=>{
+    const map="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(d.name+" "+d.address);
+    const tel=d.phone?`<a class="tel" href="tel:${esc(d.phone.replace(/\s/g,""))}">${esc(d.phone)}</a>`:`<span class="addr">Téléphone à compléter</span>`;
+    const canDel=me.role==="admin"||d.created_by===me.id;
+    return `<tr data-s="${esc(d.status)}"><td><h2 class="name">${esc(d.name)}</h2></td><td class="addr">${esc(d.address)}</td><td>${esc(d.activity||"Activité à compléter")}</td><td>${tel}</td>
+<td class="notes"><textarea data-id="${d.id}" aria-label="Notes pour ${esc(d.name)}">${esc(d.note)}</textarea></td>
+<td><select class="status" data-id="${d.id}" aria-label="Statut de ${esc(d.name)}">${opts(d.status)}</select></td>
+<td><div class="actions">${d.phone?`<a class="btn call" href="tel:${esc(d.phone.replace(/\s/g,""))}">Appeler</a>`:""}${/^https?:\/\//i.test(d.website)?`<a class="btn" href="${esc(d.website)}" target="_blank" rel="noopener">Site web</a>`:""}<a class="btn" href="${map}" target="_blank" rel="noopener">Carte</a>${canDel?`<button class="btn del" data-del="${d.id}" type="button">Supprimer</button>`:""}</div></td></tr>`}).join("");
+  $("empty").classList.toggle("hidden",list.length>0);
+}
+async function load(){DATA=await api("companies");renderMeta();render()}
+async function boot(){
+  try{me=await api("me")}catch{showAuth();return}
+  $("auth").classList.add("hidden");$("app").classList.remove("hidden");
+  $("who").innerHTML=esc(me.username)+(me.role==="admin"?'<span class="tag">Admin</span>':"");
+  $("usersBtn").classList.toggle("hidden",me.role!=="admin");
+  $("f-s").innerHTML=opts("attente");
+  try{await load()}catch{showAuth();return}
+  if(me.role==="admin")refreshPending();
+}
+async function refreshPending(){
+  try{const n=(await api("users")).filter(u=>!u.approved).length;$("usersBtn").textContent=n?`Comptes (${n} en attente)`:"Comptes"}catch{}
+}
+
+$("q").addEventListener("input",render);
+$("chips").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;filter=b.dataset.f;renderMeta();render()});
+const timers={};
+$("grid").addEventListener("input",e=>{
+  if(!e.target.matches("textarea"))return;
+  const id=e.target.dataset.id,v=e.target.value;
+  DATA.find(x=>x.id==id).note=v;clearTimeout(timers[id]);
+  timers[id]=setTimeout(()=>api("companies/"+id,"PUT",{note:v}).catch(()=>{}),600);
+});
+$("grid").addEventListener("change",async e=>{
+  if(!e.target.matches("select.status"))return;
+  const d=DATA.find(x=>x.id==e.target.dataset.id);d.status=e.target.value;renderMeta();render();
+  try{await api("companies/"+d.id,"PUT",{status:d.status})}catch(err){alert(err.message);load()}
+});
+$("grid").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-del]");if(!b||!confirm("Supprimer cette entreprise ?"))return;
+  try{await api("companies/"+b.dataset.del,"DELETE");await load()}catch(err){alert(err.message)}
+});
+
+/* ---------- Ajout ---------- */
+$("addBtn").onclick=()=>{["f-n","f-a","f-act","f-t","f-w","f-note"].forEach(i=>$(i).value="");$("f-s").value="attente";$("dmsg").textContent="";$("dlg").showModal();$("f-n").focus()};
+$("cancelBtn").onclick=()=>$("dlg").close();
+$("saveBtn").onclick=async()=>{
+  if(!$("f-n").value.trim()){$("dmsg").textContent="Le nom est obligatoire.";return}
+  try{
+    await api("companies","POST",{name:$("f-n").value,address:$("f-a").value,activity:$("f-act").value,phone:$("f-t").value,website:$("f-w").value,note:$("f-note").value,status:$("f-s").value});
+    $("dlg").close();filter="all";$("q").value="";await load();
+  }catch(e){$("dmsg").textContent=e.message}
+};
+
+/* ---------- Admin : comptes ---------- */
+async function showUsers(){
+  const users=await api("users");
+  $("ulist").innerHTML=users.map(u=>`<div class="urow"><div><b>${esc(u.username)}</b> <small>${u.role==="admin"?"admin":"membre"}</small>${u.approved?"":' <span class="pend">En attente</span>'}</div>
+<div class="actions">${u.approved?"":`<button class="btn call" data-ok="${u.id}" type="button">Valider</button>`}${u.id!==me.id?`<button class="btn del" data-rm="${u.id}" type="button">Supprimer</button>`:""}</div></div>`).join("");
+  refreshPending();
+}
+$("usersBtn").onclick=async()=>{await showUsers();$("udlg").showModal()};
+$("uclose").onclick=()=>$("udlg").close();
+$("ulist").addEventListener("click",async e=>{
+  const ok=e.target.closest("[data-ok]"),rm=e.target.closest("[data-rm]");
+  try{
+    if(ok)await api(`users/${ok.dataset.ok}/approve`,"POST");
+    else if(rm&&confirm("Supprimer ce compte ?"))await api("users/"+rm.dataset.rm,"DELETE");
+    else return;
+    await showUsers();
+  }catch(err){alert(err.message)}
+});
+
+/* Rafraîchit le tableau toutes les 30 s si personne n'est en train d'écrire */
+setInterval(()=>{if(me&&!document.hidden&&!document.activeElement?.matches("textarea,input,select"))load().catch(()=>{})},30000);
+boot();
+</script>
+</body>
+</html>
